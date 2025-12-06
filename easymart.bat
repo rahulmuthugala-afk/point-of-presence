@@ -1,5 +1,5 @@
 @echo off
-cd /d "E:\Level2 -Sem1\Introduction to Software Development\Group Project\EasyMart"
+cd /d "E:\Level2 -Sem1\Introduction to Software Development\EasyMart Group 09\EasyMart - Group 09"
 start /b npm run dev
 timeout /t 5 /nobreak >nul
 
