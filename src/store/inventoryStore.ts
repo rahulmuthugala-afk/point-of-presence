@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import { Product, Sale, Alert, InventoryEvent, getStockStatus } from '@/types/inventory';
 import { sampleProducts } from '@/data/sampleProducts';
 
@@ -30,6 +31,9 @@ interface InventoryState {
   getActiveAlerts: () => Alert[];
   getOutOfStockProducts: () => Product[];
   getLowStockProducts: () => Product[];
+  
+  // Reset to sample data
+  resetToSampleData: () => void;
 }
 
 // Generate alerts based on stock levels
@@ -51,12 +55,13 @@ function generateAlerts(products: Product[]): Alert[] {
   return alerts;
 }
 
-export const useInventoryStore = create<InventoryState>((set, get) => ({
-  products: sampleProducts,
-  sales: [],
-  alerts: generateAlerts(sampleProducts),
-  subscribers: [],
-
+export const useInventoryStore = create<InventoryState>()(
+  persist(
+    (set, get) => ({
+      products: sampleProducts,
+      sales: [],
+      alerts: generateAlerts(sampleProducts),
+      subscribers: [],
   addProduct: (product) => {
     set((state) => ({
       products: [...state.products, product],
@@ -250,4 +255,23 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
       (p) => p.currentStock > 0 && p.currentStock <= p.minimumStock
     );
   },
-}));
+
+  resetToSampleData: () => {
+    set({
+      products: sampleProducts,
+      sales: [],
+      alerts: generateAlerts(sampleProducts),
+    });
+    get().broadcast({ type: 'PRODUCT_UPDATE', product: sampleProducts[0] });
+  },
+    }),
+    {
+      name: 'easymart-inventory-storage',
+      partialize: (state) => ({
+        products: state.products,
+        sales: state.sales,
+        alerts: state.alerts,
+      }),
+    }
+  )
+);
