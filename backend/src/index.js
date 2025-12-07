@@ -11,7 +11,10 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const HOST = process.env.HOST || 'localhost';
+// Bind to 0.0.0.0 in development so remote forwarded ports (codespaces / devhosts)
+// can reach the server. You can override HOST in production via .env.
+const HOST = process.env.HOST || '0.0.0.0';
+// Allow additional origins for Codespaces preview; keep configurable via .env
 const CORS_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:8080,http://localhost:5173';
 
 // Middleware
@@ -37,6 +40,14 @@ app.use('/api/inventory', inventoryRouter);
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Backend service is running' });
+});
+
+// Root route to make the server friendly when opened directly in the browser
+app.get('/', (req, res) => {
+  res.json({
+    message: 'PointOfPresence backend - available API endpoints under /api',
+    routes: ['/api/health', '/api/products', '/api/sales', '/api/users', '/api/inventory']
+  });
 });
 
 // Error handling
