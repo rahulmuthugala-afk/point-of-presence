@@ -49,9 +49,9 @@ export function BarcodeScanner({ onScan, onManualEntry }: BarcodeScannerProps) {
       await scannerRef.current.start(
         { facingMode: 'environment' },
         {
-          fps: 10,
-          qrbox: { width: 250, height: 150 },
-          aspectRatio: 1.777778,
+          fps: 5,
+          qrbox: { width: 350, height: 180 },
+          aspectRatio: 16 / 9,
           disableFlip: false,
         },
         (decodedText) => {
@@ -114,7 +114,7 @@ export function BarcodeScanner({ onScan, onManualEntry }: BarcodeScannerProps) {
         ref={containerRef}
         className={cn(
           'relative rounded-lg overflow-hidden bg-muted mb-4 transition-all',
-          isScanning ? 'h-64' : 'h-32'
+          isScanning ? 'h-80' : 'h-32'
         )}
       >
         <div id="barcode-reader" className="w-full h-full" />
