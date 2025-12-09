@@ -59,6 +59,13 @@ export function LoginScreen({ onLogin, preselectedRole }: LoginScreenProps) {
     // Simulate authentication delay
     await new Promise((resolve) => setTimeout(resolve, 500));
 
+    // Customer role doesn't require password
+    if (selectedRole === 'customer') {
+      onLogin(selectedRole);
+      setIsLoading(false);
+      return;
+    }
+
     if (password === CREDENTIALS[selectedRole]) {
       onLogin(selectedRole);
     } else {
@@ -150,8 +157,8 @@ export function LoginScreen({ onLogin, preselectedRole }: LoginScreenProps) {
           </div>
         )}
 
-        {/* Password Form */}
-        {selectedRole && (
+        {/* Password Form - Only show for manager and cashier */}
+        {selectedRole && selectedRole !== 'customer' && (
           <form
             onSubmit={handleLogin}
             className="bg-card rounded-2xl border border-border p-6 animate-slide-up"
@@ -198,6 +205,37 @@ export function LoginScreen({ onLogin, preselectedRole }: LoginScreenProps) {
             <p className="mt-4 text-center text-sm text-muted-foreground">
               Demo password: <code className="bg-muted px-2 py-1 rounded">{CREDENTIALS[selectedRole]}</code>
             </p>
+          </form>
+        )}
+
+        {/* Customer Direct Login Button */}
+        {selectedRole === 'customer' && (
+          <form
+            onSubmit={handleLogin}
+            className="bg-card rounded-2xl border border-border p-6 animate-slide-up"
+          >
+            <p className="text-center text-muted-foreground mb-4">
+              No password required for customer view
+            </p>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className={cn(
+                'w-full py-3 px-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all',
+                !isLoading
+                  ? 'gradient-primary text-primary-foreground hover:opacity-90'
+                  : 'bg-muted text-muted-foreground cursor-not-allowed'
+              )}
+            >
+              {isLoading ? (
+                <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <>
+                  Enter Customer View
+                  <ArrowRight className="w-5 h-5" />
+                </>
+              )}
+            </button>
           </form>
         )}
       </div>
