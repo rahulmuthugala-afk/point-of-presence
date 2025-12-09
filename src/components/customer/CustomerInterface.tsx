@@ -38,13 +38,23 @@ export function CustomerInterface({ onLogout }: CustomerInterfaceProps) {
     'Other',
   ];
 
-  const filteredProducts = products.filter((p) => {
-    const matchesSearch =
-      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.barcode.includes(searchQuery);
-    const matchesCategory = selectedCategory === 'All' || p.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+  const filteredProducts = products
+    .filter((p) => {
+      const matchesSearch =
+        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.barcode.includes(searchQuery);
+      const matchesCategory = selectedCategory === 'All' || p.category === selectedCategory;
+      return matchesSearch && matchesCategory;
+    })
+    .sort((a, b) => {
+      // Get stock status priority: out of stock = 0, low stock = 1, in stock = 2
+      const getStockPriority = (product: Product) => {
+        if (product.currentStock === 0) return 0; // Out of stock - highest priority (top)
+        if (product.currentStock <= product.minimumStock) return 1; // Low stock
+        return 2; // In stock - lowest priority (bottom)
+      };
+      return getStockPriority(a) - getStockPriority(b);
+    });
 
   // Listen for real-time updates and animate
   useEffect(() => {
