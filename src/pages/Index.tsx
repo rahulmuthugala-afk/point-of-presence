@@ -9,12 +9,17 @@ const Index = () => {
   const [currentRole, setCurrentRole] = useState<UserRole | null>(null);
   const [directRole, setDirectRole] = useState<UserRole | null>(null);
 
-  // Check for URL parameter for direct role access
+  // Check for URL parameter for direct role access - auto-login for customer
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const roleParam = params.get('role');
     if (roleParam && ['manager', 'cashier', 'customer'].includes(roleParam)) {
       setDirectRole(roleParam as UserRole);
+      // Auto-login for customer role (no password needed)
+      if (roleParam === 'customer') {
+        setCurrentRole('customer');
+        sessionStorage.setItem('easymart-role', 'customer');
+      }
     }
   }, []);
 
