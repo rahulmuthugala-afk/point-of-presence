@@ -33,15 +33,15 @@ export function BarcodeScanner({ onScan, onManualEntry }: BarcodeScannerProps) {
       await scannerRef.current.start(
         { facingMode: 'environment' },
         {
-          fps: 10,
-          qrbox: { width: 250, height: 150 },
+          fps: 15,
+          qrbox: { width: 300, height: 200 },
+          aspectRatio: 1.5,
         },
         (decodedText) => {
           onScan(decodedText);
-          // Play success sound or haptic feedback
         },
         () => {
-          // Ignore QR scan errors (continuous scanning)
+          // Ignore scan errors (continuous scanning)
         }
       );
       setIsScanning(true);
