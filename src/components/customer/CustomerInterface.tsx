@@ -9,6 +9,7 @@ import {
   Search,
   Package,
   Filter,
+  LogOut,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -87,8 +88,17 @@ export function CustomerInterface({ onLogout }: CustomerInterfaceProps) {
               </div>
             </div>
 
-            <div className="text-sm text-muted-foreground">
-              Live Stock Display
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-muted-foreground">Live Stock Display</span>
+              {onLogout && (
+                <button
+                  onClick={onLogout}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-muted hover:bg-muted/80 text-foreground transition-all"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Logout
+                </button>
+              )}
             </div>
           </div>
         </div>
