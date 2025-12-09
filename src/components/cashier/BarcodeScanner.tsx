@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Html5Qrcode } from 'html5-qrcode';
+import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 import { Camera, CameraOff, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -26,23 +26,38 @@ export function BarcodeScanner({ onScan, onManualEntry }: BarcodeScannerProps) {
   const startScanning = async () => {
     setError(null);
     try {
+      const formatsToSupport = [
+        Html5QrcodeSupportedFormats.CODE_128,
+        Html5QrcodeSupportedFormats.CODE_39,
+        Html5QrcodeSupportedFormats.EAN_13,
+        Html5QrcodeSupportedFormats.EAN_8,
+        Html5QrcodeSupportedFormats.UPC_A,
+        Html5QrcodeSupportedFormats.UPC_E,
+        Html5QrcodeSupportedFormats.QR_CODE,
+        Html5QrcodeSupportedFormats.CODE_93,
+        Html5QrcodeSupportedFormats.CODABAR,
+        Html5QrcodeSupportedFormats.ITF,
+      ];
+
       if (!scannerRef.current) {
-        scannerRef.current = new Html5Qrcode('barcode-reader');
+        scannerRef.current = new Html5Qrcode('barcode-reader', {
+          formatsToSupport,
+          verbose: false,
+        });
       }
 
       await scannerRef.current.start(
         { facingMode: 'environment' },
         {
-          fps: 15,
-          qrbox: { width: 300, height: 200 },
-          aspectRatio: 1.5,
+          fps: 10,
+          qrbox: { width: 250, height: 150 },
+          aspectRatio: 1.777778,
+          disableFlip: false,
         },
         (decodedText) => {
           onScan(decodedText);
         },
-        () => {
-          // Ignore scan errors (continuous scanning)
-        }
+        () => {}
       );
       setIsScanning(true);
     } catch (err) {
