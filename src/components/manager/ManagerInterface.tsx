@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useInventoryStore } from '@/store/inventoryStore';
+import { useDatabaseContext } from '@/contexts/DatabaseContext';
 import { useRealtimeSync } from '@/hooks/useRealtimeSync';
 import { Product, Alert, getStockStatus, ProductCategory } from '@/types/inventory';
 import { ProductCard } from '@/components/ui/ProductCard';
 import { ProductForm } from './ProductForm';
 import { RestockModal } from './RestockModal';
+import { DatabaseStatus } from '@/components/ui/DatabaseStatus';
 import {
   ShoppingCart,
   LogOut,
@@ -18,6 +19,7 @@ import {
   TrendingDown,
   CheckCircle,
   Trash2,
+  RefreshCw,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -31,6 +33,9 @@ export function ManagerInterface({ onLogout }: ManagerInterfaceProps) {
   const {
     products,
     alerts,
+    isLoading,
+    isConnected,
+    error,
     addProduct,
     updateProduct,
     deleteProduct,
@@ -39,7 +44,8 @@ export function ManagerInterface({ onLogout }: ManagerInterfaceProps) {
     getActiveAlerts,
     getOutOfStockProducts,
     getLowStockProducts,
-  } = useInventoryStore();
+    refresh,
+  } = useDatabaseContext();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<ProductCategory | 'All'>('All');
@@ -74,28 +80,28 @@ export function ManagerInterface({ onLogout }: ManagerInterfaceProps) {
     return matchesSearch && matchesCategory;
   });
 
-  const handleSaveProduct = (product: Product) => {
-    if (editingProduct) {
-      updateProduct(product);
-      toast.success('Product updated successfully');
-    } else {
-      addProduct(product);
-      toast.success('Product added successfully');
+  const handleSaveProduct = async (product: Product) => {
+    try {
+      if (editingProduct) {
+        await updateProduct(product);
+      } else {
+        await addProduct(product);
+      }
+      setShowProductForm(false);
+      setEditingProduct(null);
+    } catch (err) {
+      // Error toast is handled by the database hook
     }
-    setShowProductForm(false);
-    setEditingProduct(null);
   };
 
-  const handleDeleteProduct = (product: Product) => {
+  const handleDeleteProduct = async (product: Product) => {
     if (confirm(`Are you sure you want to delete "${product.name}"?`)) {
-      deleteProduct(product.id);
-      toast.success('Product deleted');
+      await deleteProduct(product.id);
     }
   };
 
-  const handleRestock = (productId: string, quantity: number) => {
-    restockProduct(productId, quantity);
-    toast.success('Stock updated successfully');
+  const handleRestock = async (productId: string, quantity: number) => {
+    await restockProduct(productId, quantity);
   };
 
   // Listen for new alerts
@@ -133,6 +139,23 @@ export function ManagerInterface({ onLogout }: ManagerInterfaceProps) {
             </div>
 
             <div className="flex items-center gap-3">
+              {/* Database Status */}
+              <DatabaseStatus 
+                isConnected={isConnected} 
+                isLoading={isLoading}
+                error={error}
+              />
+
+              {/* Refresh Button */}
+              <button
+                onClick={refresh}
+                disabled={isLoading}
+                className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors disabled:opacity-50"
+                title="Refresh data"
+              >
+                <RefreshCw className={cn("w-5 h-5", isLoading && "animate-spin")} />
+              </button>
+
               {/* Notification Bell */}
               <button
                 onClick={() => setShowNotifications(!showNotifications)}

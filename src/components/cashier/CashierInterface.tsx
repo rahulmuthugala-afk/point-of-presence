@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useInventoryStore } from '@/store/inventoryStore';
+import { useDatabaseContext } from '@/contexts/DatabaseContext';
 import { useRealtimeSync } from '@/hooks/useRealtimeSync';
 import { Product, Sale } from '@/types/inventory';
 import { BarcodeScanner } from './BarcodeScanner';
 import { ProductCard } from '@/components/ui/ProductCard';
 import { StatusBadge } from '@/components/ui/StatusBadge';
+import { DatabaseStatus } from '@/components/ui/DatabaseStatus';
 import {
   ShoppingCart,
   LogOut,
@@ -16,6 +17,7 @@ import {
   XCircle,
   Clock,
   Package,
+  RefreshCw,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getStockStatus } from '@/types/inventory';
@@ -32,7 +34,16 @@ interface CartItem {
 
 export function CashierInterface({ onLogout }: CashierInterfaceProps) {
   useRealtimeSync();
-  const { products, sellProduct, getProductByBarcode, sales } = useInventoryStore();
+  const { 
+    products, 
+    sales, 
+    isLoading, 
+    isConnected, 
+    error,
+    sellProduct, 
+    getProductByBarcode, 
+    refresh 
+  } = useDatabaseContext();
   const [cart, setCart] = useState<CartItem[]>([]);
   const [lastScanned, setLastScanned] = useState<Product | null>(null);
   const [scanError, setScanError] = useState<string | null>(null);
@@ -107,16 +118,15 @@ export function CashierInterface({ onLogout }: CashierInterfaceProps) {
     0
   );
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     let allSuccess = true;
 
-    cart.forEach((item) => {
-      const success = sellProduct(item.product.id, item.quantity, 'Cashier');
+    for (const item of cart) {
+      const success = await sellProduct(item.product.id, item.quantity, 'Cashier');
       if (!success) {
         allSuccess = false;
-        toast.error(`Failed to process ${item.product.name}`);
       }
-    });
+    }
 
     if (allSuccess) {
       toast.success('Sale completed!', {
@@ -144,13 +154,32 @@ export function CashierInterface({ onLogout }: CashierInterfaceProps) {
               </div>
             </div>
 
-            <button
-              onClick={onLogout}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors"
-            >
-              <LogOut className="w-4 h-4" />
-              Logout
-            </button>
+            <div className="flex items-center gap-3">
+              {/* Database Status */}
+              <DatabaseStatus 
+                isConnected={isConnected} 
+                isLoading={isLoading}
+                error={error}
+              />
+
+              {/* Refresh Button */}
+              <button
+                onClick={refresh}
+                disabled={isLoading}
+                className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors disabled:opacity-50"
+                title="Refresh data"
+              >
+                <RefreshCw className={cn("w-4 h-4", isLoading && "animate-spin")} />
+              </button>
+
+              <button
+                onClick={onLogout}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors"
+              >
+                <LogOut className="w-4 h-4" />
+                Logout
+              </button>
+            </div>
           </div>
         </header>
 
