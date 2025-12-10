@@ -1,15 +1,17 @@
 import { useState, useEffect } from 'react';
-import { useInventoryStore } from '@/store/inventoryStore';
+import { useDatabaseContext } from '@/contexts/DatabaseContext';
 import { useRealtimeSync } from '@/hooks/useRealtimeSync';
 import { Product, ProductCategory } from '@/types/inventory';
 import { ProductCard } from '@/components/ui/ProductCard';
 import { StatusBadge } from '@/components/ui/StatusBadge';
+import { DatabaseStatus } from '@/components/ui/DatabaseStatus';
 import {
   ShoppingCart,
   Search,
   Package,
   Filter,
   LogOut,
+  RefreshCw,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -19,7 +21,7 @@ interface CustomerInterfaceProps {
 
 export function CustomerInterface({ onLogout }: CustomerInterfaceProps) {
   useRealtimeSync();
-  const { products } = useInventoryStore();
+  const { products, isLoading, isConnected, error, refresh } = useDatabaseContext();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<ProductCategory | 'All'>('All');
   const [animatingProducts, setAnimatingProducts] = useState<Set<string>>(new Set());
@@ -99,6 +101,23 @@ export function CustomerInterface({ onLogout }: CustomerInterfaceProps) {
             </div>
 
             <div className="flex items-center gap-4">
+              {/* Database Status */}
+              <DatabaseStatus 
+                isConnected={isConnected} 
+                isLoading={isLoading}
+                error={error}
+              />
+
+              {/* Refresh Button */}
+              <button
+                onClick={refresh}
+                disabled={isLoading}
+                className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors disabled:opacity-50"
+                title="Refresh data"
+              >
+                <RefreshCw className={cn("w-4 h-4", isLoading && "animate-spin")} />
+              </button>
+
               <span className="text-sm text-muted-foreground">Live Stock Display</span>
               {onLogout && (
                 <button
