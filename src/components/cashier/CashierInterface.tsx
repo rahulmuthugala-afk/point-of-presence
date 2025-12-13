@@ -130,7 +130,7 @@ export function CashierInterface({ onLogout }: CashierInterfaceProps) {
 
     if (allSuccess) {
       toast.success('Sale completed!', {
-        description: `Total: $${cartTotal.toFixed(2)}`,
+        description: `Total: LKR ${cartTotal.toFixed(2)}`,
       });
       setCart([]);
       setLastScanned(null);
@@ -260,7 +260,7 @@ export function CashierInterface({ onLogout }: CashierInterfaceProps) {
                       <p className="font-medium text-sm truncate">{product.name}</p>
                       <div className="flex items-center justify-between mt-1">
                         <span className="text-xs text-muted-foreground">
-                          ${product.price.toFixed(2)}
+                          LKR {product.price.toFixed(2)}
                         </span>
                         <span className="text-xs text-success">
                           {product.currentStock} in stock
@@ -306,7 +306,7 @@ export function CashierInterface({ onLogout }: CashierInterfaceProps) {
                     <div className="flex-1 min-w-0">
                       <p className="font-medium truncate">{item.product.name}</p>
                       <p className="text-sm text-muted-foreground">
-                        ${item.product.price.toFixed(2)} each
+                        LKR {item.product.price.toFixed(2)} each
                       </p>
                     </div>
                     <button
@@ -335,7 +335,7 @@ export function CashierInterface({ onLogout }: CashierInterfaceProps) {
                       </button>
                     </div>
                     <span className="font-semibold">
-                      ${(item.product.price * item.quantity).toFixed(2)}
+                      LKR {(item.product.price * item.quantity).toFixed(2)}
                     </span>
                   </div>
                 </div>
@@ -348,7 +348,7 @@ export function CashierInterface({ onLogout }: CashierInterfaceProps) {
         <div className="p-6 border-t border-border bg-muted/50">
           <div className="flex items-center justify-between mb-4">
             <span className="text-lg font-medium">Total</span>
-            <span className="text-2xl font-bold">${cartTotal.toFixed(2)}</span>
+            <span className="text-2xl font-bold">LKR {cartTotal.toFixed(2)}</span>
           </div>
           <button
             onClick={handleCheckout}

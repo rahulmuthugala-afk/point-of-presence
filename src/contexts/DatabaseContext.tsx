@@ -1,8 +1,10 @@
-import React, { createContext, useContext, ReactNode, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, ReactNode, useEffect, useCallback, useRef } from 'react';
 import { useDatabase } from '@/hooks/useDatabase';
 import { useRealtimeSync } from '@/hooks/useRealtimeSync';
 import { Product, Sale, Alert } from '@/types/inventory';
 import { useInventoryStore } from '@/store/inventoryStore';
+
+const AUTO_REFRESH_INTERVAL = 5000; // 5 seconds
 
 interface DatabaseContextType {
   products: Product[];
@@ -32,6 +34,22 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
   const database = useDatabase();
   const inventoryStore = useInventoryStore();
   const { broadcast, wsConnected } = useRealtimeSync();
+  const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Auto-refresh data at regular intervals
+  useEffect(() => {
+    refreshIntervalRef.current = setInterval(() => {
+      if (database.isConnected) {
+        database.refresh();
+      }
+    }, AUTO_REFRESH_INTERVAL);
+
+    return () => {
+      if (refreshIntervalRef.current) {
+        clearInterval(refreshIntervalRef.current);
+      }
+    };
+  }, [database.isConnected, database.refresh]);
 
   // Wrap database operations to broadcast changes via WebSocket
   const addProductWithSync = useCallback(async (product: Product) => {
