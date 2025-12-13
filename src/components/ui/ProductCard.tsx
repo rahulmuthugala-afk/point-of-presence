@@ -101,7 +101,7 @@ export function ProductCard({
         </div>
         <div className="flex justify-between">
           <span className="text-muted-foreground">Price</span>
-          <span className="font-medium">${product.price.toFixed(2)}</span>
+          <span className="font-medium">LKR {product.price.toFixed(2)}</span>
         </div>
         {variant === 'detailed' && (
           <>
