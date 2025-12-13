@@ -1,7 +1,16 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { InventoryEvent } from '@/types/inventory';
 
-const WS_URL = 'ws://localhost:3000';
+// In production, use wss:// with same host; in development use localhost
+const getWsUrl = () => {
+  if (typeof window !== 'undefined' && import.meta.env.PROD) {
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    return `${protocol}//${window.location.host}`;
+  }
+  return 'ws://localhost:3000';
+};
+
+const WS_URL = getWsUrl();
 
 export function useWebSocket(onMessage: (event: InventoryEvent) => void) {
   const wsRef = useRef<WebSocket | null>(null);

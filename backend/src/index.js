@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
 import { createServer } from 'http';
 import { WebSocketServer, WebSocket } from 'ws';
 import { database } from './config/database.js';
@@ -78,6 +79,12 @@ app.use((req, res, next) => {
   next();
 });
 
+// Serve static frontend files in production
+if (process.env.NODE_ENV === 'production') {
+  const publicPath = path.join(process.cwd(), 'public');
+  app.use(express.static(publicPath));
+}
+
 // Routes
 app.use('/api/products', productsRouter);
 app.use('/api/sales', salesRouter);
@@ -103,10 +110,22 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: err.message });
 });
 
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({ error: 'Endpoint not found' });
-});
+// SPA fallback - serve index.html for non-API routes in production
+if (process.env.NODE_ENV === 'production') {
+  app.use((req, res, next) => {
+    if (!req.path.startsWith('/api')) {
+      const publicPath = path.join(process.cwd(), 'public');
+      res.sendFile(path.join(publicPath, 'index.html'));
+    } else {
+      res.status(404).json({ error: 'Endpoint not found' });
+    }
+  });
+} else {
+  // 404 handler for development
+  app.use((req, res) => {
+    res.status(404).json({ error: 'Endpoint not found' });
+  });
+}
 
 // Initialize database and start server
 async function start() {

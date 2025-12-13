@@ -1,6 +1,14 @@
 // API Service for SQLite Backend Communication
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+// In production, use relative URL; in development, use localhost
+const getApiBaseUrl = () => {
+  if (import.meta.env.PROD) {
+    return '/api';
+  }
+  return import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 // Generic fetch wrapper with error handling
 async function apiRequest<T>(
