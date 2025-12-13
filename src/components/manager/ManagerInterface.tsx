@@ -29,7 +29,7 @@ interface ManagerInterfaceProps {
 }
 
 export function ManagerInterface({ onLogout }: ManagerInterfaceProps) {
-  useRealtimeSync();
+  const { wsConnected } = useRealtimeSync();
   const {
     products,
     alerts,
@@ -143,6 +143,7 @@ export function ManagerInterface({ onLogout }: ManagerInterfaceProps) {
               <DatabaseStatus 
                 isConnected={isConnected} 
                 isLoading={isLoading}
+                wsConnected={wsConnected}
                 error={error}
               />
 
