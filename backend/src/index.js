@@ -1,6 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import { createServer } from 'http';
+import { WebSocketServer, WebSocket } from 'ws';
 import { database } from './config/database.js';
 import productsRouter from './routes/products.js';
 import salesRouter from './routes/sales.js';
@@ -10,12 +12,57 @@ import inventoryRouter from './routes/inventory.js';
 dotenv.config();
 
 const app = express();
+const server = createServer(app);
+const wss = new WebSocketServer({ server });
+
 const PORT = process.env.PORT || 3000;
-// Bind to 0.0.0.0 in development so remote forwarded ports (codespaces / devhosts)
-// can reach the server. You can override HOST in production via .env.
 const HOST = process.env.HOST || '0.0.0.0';
-// Allow additional origins for Codespaces preview; keep configurable via .env
 const CORS_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:8080,http://localhost:5173';
+
+// Store connected clients
+const clients = new Set();
+
+// WebSocket connection handling
+wss.on('connection', (ws) => {
+  console.log('New WebSocket client connected');
+  clients.add(ws);
+
+  ws.on('message', (message) => {
+    try {
+      const data = JSON.parse(message);
+      console.log('WebSocket message received:', data.type);
+      
+      // Broadcast to all other clients
+      clients.forEach((client) => {
+        if (client !== ws && client.readyState === WebSocket.OPEN) {
+          client.send(JSON.stringify(data));
+        }
+      });
+    } catch (error) {
+      console.error('WebSocket message error:', error);
+    }
+  });
+
+  ws.on('close', () => {
+    console.log('WebSocket client disconnected');
+    clients.delete(ws);
+  });
+
+  ws.on('error', (error) => {
+    console.error('WebSocket error:', error);
+    clients.delete(ws);
+  });
+});
+
+// Broadcast function for server-side events
+export function broadcast(data) {
+  const message = JSON.stringify(data);
+  clients.forEach((client) => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(message);
+    }
+  });
+}
 
 // Middleware
 app.use(express.json());
@@ -65,8 +112,9 @@ app.use((req, res) => {
 async function start() {
   try {
     await database.init();
-    app.listen(PORT, HOST, () => {
+    server.listen(PORT, HOST, () => {
       console.log(`\n✓ Backend server running at http://${HOST}:${PORT}`);
+      console.log(`✓ WebSocket server running at ws://${HOST}:${PORT}`);
       console.log(`✓ API endpoints available at http://${HOST}:${PORT}/api/`);
       console.log(`✓ CORS enabled for: ${CORS_ORIGIN}\n`);
     });

@@ -33,7 +33,7 @@ interface CartItem {
 }
 
 export function CashierInterface({ onLogout }: CashierInterfaceProps) {
-  useRealtimeSync();
+  const { wsConnected } = useRealtimeSync();
   const { 
     products, 
     sales, 
@@ -159,6 +159,7 @@ export function CashierInterface({ onLogout }: CashierInterfaceProps) {
               <DatabaseStatus 
                 isConnected={isConnected} 
                 isLoading={isLoading}
+                wsConnected={wsConnected}
                 error={error}
               />
 

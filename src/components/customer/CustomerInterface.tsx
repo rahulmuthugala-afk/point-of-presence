@@ -20,7 +20,7 @@ interface CustomerInterfaceProps {
 }
 
 export function CustomerInterface({ onLogout }: CustomerInterfaceProps) {
-  useRealtimeSync();
+  const { wsConnected } = useRealtimeSync();
   const { products, isLoading, isConnected, error, refresh } = useDatabaseContext();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<ProductCategory | 'All'>('All');
@@ -105,6 +105,7 @@ export function CustomerInterface({ onLogout }: CustomerInterfaceProps) {
               <DatabaseStatus 
                 isConnected={isConnected} 
                 isLoading={isLoading}
+                wsConnected={wsConnected}
                 error={error}
               />
 
