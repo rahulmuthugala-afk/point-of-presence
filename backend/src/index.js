@@ -79,11 +79,13 @@ app.use((req, res, next) => {
   next();
 });
 
-// Serve static frontend files in production
-if (process.env.NODE_ENV === 'production') {
-  const publicPath = path.join(process.cwd(), 'public');
-  app.use(express.static(publicPath));
-}
+// Get public path for static files
+const publicPath = process.env.NODE_ENV === 'production' 
+  ? path.join(process.cwd(), 'public')
+  : path.join(process.cwd(), '../dist');
+
+// Serve static frontend files
+app.use(express.static(publicPath));
 
 // Routes
 app.use('/api/products', productsRouter);
@@ -93,39 +95,36 @@ app.use('/api/inventory', inventoryRouter);
 
 // Health check
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', message: 'Backend service is running' });
+  res.json({ status: 'ok', message: 'Backend service is running', timestamp: new Date().toISOString() });
 });
 
-// Root route to make the server friendly when opened directly in the browser
-app.get('/', (req, res) => {
-  res.json({
-    message: 'PointOfPresence backend - available API endpoints under /api',
-    routes: ['/api/health', '/api/products', '/api/sales', '/api/users', '/api/inventory']
-  });
+// Role-based routes - redirect to main app with role parameter
+app.get('/customer', (req, res) => {
+  res.redirect('/?role=customer');
 });
 
-// Error handling
-app.use((err, req, res, next) => {
-  console.error('Error:', err);
+app.get('/manager', (req, res) => {
+  res.redirect('/?role=manager');
+});
+
+app.get('/cashier', (req, res) => {
+  res.redirect('/?role=cashier');
+});
+
+// Error handling for API routes
+app.use('/api', (err, req, res, next) => {
+  console.error('API Error:', err);
   res.status(500).json({ error: err.message });
 });
 
-// SPA fallback - serve index.html for non-API routes in production
-if (process.env.NODE_ENV === 'production') {
-  app.use((req, res, next) => {
-    if (!req.path.startsWith('/api')) {
-      const publicPath = path.join(process.cwd(), 'public');
-      res.sendFile(path.join(publicPath, 'index.html'));
-    } else {
-      res.status(404).json({ error: 'Endpoint not found' });
-    }
-  });
-} else {
-  // 404 handler for development
-  app.use((req, res) => {
+// SPA fallback - serve index.html for all non-API routes
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api')) {
     res.status(404).json({ error: 'Endpoint not found' });
-  });
-}
+  } else {
+    res.sendFile(path.join(publicPath, 'index.html'));
+  }
+});
 
 // Initialize database and start server
 async function start() {
